@@ -1,40 +1,40 @@
 #!/bin/bash
 
 rand(){
-    min=$1
-    max=$(($2-$min+1))
-    num=$(cat /dev/urandom | head -n 10 | cksum | awk -F ' ' '{print $1}')
-    echo $(($num%$max+$min))  
+	min=$1
+	max=$(($2-$min+1))
+	num=$(cat /dev/urandom | head -n 10 | cksum | awk -F ' ' '{print $1}')
+	echo $(($num%$max+$min))  
 }
 
 randpwd(){
-    mpasswd=$(cat /dev/urandom | head -1 | md5sum | head -c 4)
-    echo ${mpasswd}  
+	mpasswd=$(cat /dev/urandom | head -1 | md5sum | head -c 4)
+	echo ${mpasswd}  
 }
 
 add_backports(){
 	apt install -y apt-transport-https sudo
-    sudo echo deb https://deb.debian.org/debian/ buster-backports main contrib non-free >> /etc/apt/sources.list
+	sudo echo deb https://deb.debian.org/debian/ buster-backports main contrib non-free >> /etc/apt/sources.list
 	sudo echo deb-src https://deb.debian.org/debian/ buster-backports main contrib non-free >> /etc/apt/sources.list
 	apt update
 }
 
 wireguard_install(){
-    apt install -y sudo wireguard curl resolvconf
-    sudo echo net.ipv4.ip_forward = 1 >> /etc/sysctl.conf
-    sysctl -p
-    echo "1"> /proc/sys/net/ipv4/ip_forward
-    mkdir /etc/wireguard
-    cd /etc/wireguard
-    wg genkey | tee sprivatekey | wg pubkey > spublickey
-    wg genkey | tee cprivatekey | wg pubkey > cpublickey
-    s1=$(cat sprivatekey)
-    s2=$(cat spublickey)
-    c1=$(cat cprivatekey)
-    c2=$(cat cpublickey)
-    serverip=$(curl ipv4.icanhazip.com)
-    port=$(rand 10000 60000)
-    eth=$(ls /sys/class/net | awk '/^e/{print}')
+	apt install -y sudo wireguard curl resolvconf
+	sudo echo net.ipv4.ip_forward = 1 >> /etc/sysctl.conf
+	sysctl -p
+	echo "1"> /proc/sys/net/ipv4/ip_forward
+	mkdir /etc/wireguard
+	cd /etc/wireguard
+	wg genkey | tee sprivatekey | wg pubkey > spublickey
+	wg genkey | tee cprivatekey | wg pubkey > cpublickey
+	s1=$(cat sprivatekey)
+	s2=$(cat spublickey)
+	c1=$(cat cprivatekey)
+	c2=$(cat cpublickey)
+	serverip=$(curl ipv4.icanhazip.com)
+	port=$(rand 10000 60000)
+	eth=$(ls /sys/class/net | awk '/^e/{print}')
 
 sudo cat > /etc/wireguard/wg0.conf <<-EOF
 [Interface]
@@ -51,28 +51,28 @@ PublicKey = $c2
 AllowedIPs = 10.0.0.2/32
 EOF
 
-    sudo wg-quick up wg0
+	sudo wg-quick up wg0
 	systemctl enable wg-quick@wg0
-    udp_install
+	udp_install
 }
 
 udp_install(){
-    #下载udpspeeder和udp2raw （amd64版）
-    mkdir /usr/src/udp
-    mkdir /etc/wireguard/client
-    cd /usr/src/udp
-    wget https://github.com/yushum/wireguard_game/raw/master/speederv2
-    wget https://github.com/yushum/wireguard_game/raw/master/udp2raw
-    wget https://github.com/yushum/wireguard_game/raw/master/run.sh
-    chmod +x speederv2 udp2raw run.sh
-    
-    #启动udpspeeder和udp2raw
-    udpport=$(rand 10000 60000)
-    password=$(randpwd)
-    nohup ./speederv2 -s -l127.0.0.1:4096 -r127.0.0.1:$port -f2:4 --mode 0 --timeout 0 >speeder.log 2>&1 &
-    nohup ./run.sh ./udp2raw -s -l0.0.0.0:$udpport -r 127.0.0.1:4096  --raw-mode faketcp  -a -k $password >udp2raw.log 2>&1 &
-    echo -e "\033[37;41m输入你客户端电脑的默认网关，打开cmd，使用ipconfig命令查看\033[0m"
-    read -p "比如192.168.1.1 ：" ugateway
+	#下载udpspeeder和udp2raw （amd64版）
+	mkdir /usr/src/udp
+	mkdir /etc/wireguard/client
+	cd /usr/src/udp
+	wget https://github.com/yushum/wireguard_game/raw/master/speederv2
+	wget https://github.com/yushum/wireguard_game/raw/master/udp2raw
+	wget https://github.com/yushum/wireguard_game/raw/master/run.sh
+	chmod +x speederv2 udp2raw run.sh
+
+	#启动udpspeeder和udp2raw
+	udpport=$(rand 10000 60000)
+	password=$(randpwd)
+	nohup ./speederv2 -s -l127.0.0.1:4096 -r127.0.0.1:$port -f2:4 --mode 0 --timeout 0 >speeder.log 2>&1 &
+	nohup ./run.sh ./udp2raw -s -l0.0.0.0:$udpport -r 127.0.0.1:4096  --raw-mode faketcp  -a -k $password >udp2raw.log 2>&1 &
+	echo -e "\033[37;41m输入你客户端电脑的默认网关，打开cmd，使用ipconfig命令查看\033[0m"
+	read -p "比如192.168.1.1 ：" ugateway
 
 cat > /etc/wireguard/client/client.conf <<-EOF
 [Interface]
@@ -124,32 +124,32 @@ EOF
 
 
 #设置脚本权限
-    sudo chmod 755 /etc/init.d/autoudp
-    cd /etc/init.d
-    sudo update-rc.d autoudp defaults
+	sudo chmod 755 /etc/init.d/autoudp
+	cd /etc/init.d
+	sudo update-rc.d autoudp defaults
 }
 
 wireguard_remove(){
 
-    sudo wg-quick down wg0
+	sudo wg-quick down wg0
 	sudo systemctl disable wg-quick@wg0
-    sudo apt remove -y wireguard
-    sudo rm -rf /etc/wireguard
-    sudo rm -f /etc/init.d/autoudp
-    echo -e "\033[37;41m卸载完成\033[0m"
+	sudo apt remove -y wireguard
+	sudo rm -rf /etc/wireguard
+	sudo rm -f /etc/init.d/autoudp
+	echo -e "\033[37;41m卸载完成\033[0m"
 
 }
 
 add_user(){
-    echo -e "\033[37;41m给新用户起个名字，不能和已有用户重复\033[0m"
-    read -p "请输入用户名：" newname
-    cd /etc/wireguard/client
-    cp client.conf $newname.conf
-    wg genkey | tee temprikey | wg pubkey > tempubkey
-    ipnum=$(grep Allowed /etc/wireguard/wg0.conf | tail -1 | awk -F '[ ./]' '{print $6}')
-    newnum=$((10#${ipnum}+1))
-    sed -i 's%^PrivateKey.*$%'"PrivateKey = $(cat temprikey)"'%' $newname.conf
-    sed -i 's%^Address.*$%'"Address = 10.0.0.$newnum\/24"'%' $newname.conf
+	echo -e "\033[37;41m给新用户起个名字，不能和已有用户重复\033[0m"
+	read -p "请输入用户名：" newname
+	cd /etc/wireguard/client
+	cp client.conf $newname.conf
+	wg genkey | tee temprikey | wg pubkey > tempubkey
+	ipnum=$(grep Allowed /etc/wireguard/wg0.conf | tail -1 | awk -F '[ ./]' '{print $6}')
+	newnum=$((10#${ipnum}+1))
+	sed -i 's%^PrivateKey.*$%'"PrivateKey = $(cat temprikey)"'%' $newname.conf
+	sed -i 's%^Address.*$%'"Address = 10.0.0.$newnum\/24"'%' $newname.conf
 
 cat >> /etc/wireguard/wg0.conf <<-EOF
 
@@ -157,51 +157,51 @@ cat >> /etc/wireguard/wg0.conf <<-EOF
 PublicKey = $(cat tempubkey)
 AllowedIPs = 10.0.0.$newnum/32
 EOF
-    wg set wg0 peer $(cat tempubkey) allowed-ips 10.0.0.$newnum/32
-    echo -e "\033[37;41m添加完成，客户端文件：/etc/wireguard/client/$newname.conf\033[0m"
-    rm -f temprikey tempubkey
+	wg set wg0 peer $(cat tempubkey) allowed-ips 10.0.0.$newnum/32
+	echo -e "\033[37;41m添加完成，客户端文件：/etc/wireguard/client/$newname.conf\033[0m"
+	rm -f temprikey tempubkey
 }
 
 #开始菜单
 start_menu(){
-    clear
-    echo -e "\033[43;42m ====================================\033[0m"
-    echo -e "\033[43;42m 介绍：wireguard+udpspeeder+udp2raw  \033[0m"
-    echo -e "\033[43;42m 系统：Debian                        \033[0m"
-    echo -e "\033[43;42m 作者：Yushum                        \033[0m"
-    echo -e "\033[43;42m 网站：yushum.com                    \033[0m"
-    echo -e "\033[43;42m ====================================\033[0m"
-    echo
+	clear
+	echo -e "\033[43;42m ====================================\033[0m"
+	echo -e "\033[43;42m 介绍：wireguard+udpspeeder+udp2raw  \033[0m"
+	echo -e "\033[43;42m 系统：Debian                        \033[0m"
+	echo -e "\033[43;42m 作者：Yushum                        \033[0m"
+	echo -e "\033[43;42m 网站：yushum.com                    \033[0m"
+	echo -e "\033[43;42m ====================================\033[0m"
+	echo
 	echo -e "\033[0;33m 0. 添加backports到sources.list\033[0m"
-    echo -e "\033[0;33m 1. 安装wireguard+udpspeeder+udp2raw\033[0m"
-    echo -e "\033[0;31m 2. 删除wireguard+udpspeeder+udp2raw\033[0m"
-    echo -e "\033[37;41m 3. 增加用户\033[0m"
-    echo -e " 0. 退出脚本"
-    echo
-    read -p "请输入数字:" num
-    case "$num" in
+	echo -e "\033[0;33m 1. 安装wireguard+udpspeeder+udp2raw\033[0m"
+	echo -e "\033[0;31m 2. 删除wireguard+udpspeeder+udp2raw\033[0m"
+	echo -e "\033[37;41m 3. 增加用户\033[0m"
+	echo -e " 0. 退出脚本"
+	echo
+	read -p "请输入数字:" num
+	case "$num" in
 	0)
-    add_backports
-    ;;
-    1)
-    wireguard_install
-    ;;
-    2)
-    wireguard_remove
-    ;;
-    3)
-    add_user
-    ;;
-    0)
-    exit 1
-    ;;
-    *)
-    clear
-    echo -e "请输入正确数字"
-    sleep 2s
-    start_menu
-    ;;
-    esac
+	add_backports
+	;;
+	1)
+	wireguard_install
+	;;
+	2)
+	wireguard_remove
+	;;
+	3)
+	add_user
+	;;
+	0)
+	exit 1
+	;;
+	*)
+	clear
+	echo -e "请输入正确数字"
+	sleep 2s
+	start_menu
+	;;
+	esac
 }
 
 start_menu
