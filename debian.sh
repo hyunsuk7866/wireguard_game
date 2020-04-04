@@ -174,24 +174,24 @@ start_menu(){
 	echo -e "\033[43;42m 网站：yushum.com                    \033[0m"
 	echo -e "\033[43;42m ====================================\033[0m"
 	echo
-	echo -e "\033[0;33m 0. 添加backports到sources.list\033[0m"
-	echo -e "\033[0;33m 1. 安装wireguard+udpspeeder+udp2raw\033[0m"
-	echo -e "\033[0;31m 2. 删除wireguard+udpspeeder+udp2raw\033[0m"
-	echo -e "\033[37;41m 3. 增加用户\033[0m"
+	echo -e "\033[0;33m 1. 添加backports到sources.list\033[0m"
+	echo -e "\033[0;33m 2. 安装wireguard+udpspeeder+udp2raw\033[0m"
+	echo -e "\033[0;31m 3. 删除wireguard+udpspeeder+udp2raw\033[0m"
+	echo -e "\033[37;41m 4. 增加用户\033[0m"
 	echo -e " 0. 退出脚本"
 	echo
 	read -p "请输入数字:" num
 	case "$num" in
-	0)
+	1)
 	add_backports
 	;;
-	1)
+	2)
 	wireguard_install
 	;;
-	2)
+	3)
 	wireguard_remove
 	;;
-	3)
+	4)
 	add_user
 	;;
 	0)
