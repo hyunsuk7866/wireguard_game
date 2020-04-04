@@ -85,7 +85,7 @@ MTU = 1420
 
 [Peer]
 PublicKey = $s2
-Endpoint = 172.16.0.1:2090
+Endpoint = 127.0.0.1:2090
 AllowedIPs = 0.0.0.0/0, ::0/0
 PersistentKeepalive = 25
 EOF
