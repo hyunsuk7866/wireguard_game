@@ -137,7 +137,7 @@ wireguard_remove(){
 	sudo rm -rf /etc/wireguard
 	sudo rm -rf /usr/src/udp
 	sudo rm -f /etc/init.d/autoudp
-	echo -e "\033[37;41m卸载完成\033[0m"
+	echo -e "\033[37;41m卸载完成,请重启\033[0m"
 
 }
 
