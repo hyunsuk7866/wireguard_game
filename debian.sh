@@ -136,6 +136,7 @@ wireguard_remove(){
 	sudo apt remove -y wireguard
 	sudo apt -y autoremove
 	sudo rm -rf /etc/wireguard
+	sudo rm -rf /usr/src/udp
 	sudo rm -f /etc/init.d/autoudp
 	echo -e "\033[37;41m卸载完成\033[0m"
 
