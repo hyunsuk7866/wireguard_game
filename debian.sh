@@ -51,8 +51,8 @@ PublicKey = $c2
 AllowedIPs = 10.0.0.2/32
 EOF
 
-	sudo wg-quick up wg0
 	systemctl enable wg-quick@wg0
+	systemctl start wg-quick@wg0
 	udp_install
 }
 
@@ -131,7 +131,7 @@ EOF
 
 wireguard_remove(){
 
-	sudo wg-quick down wg0
+	sudo systemctl stop wg-quick@wg0
 	sudo systemctl disable wg-quick@wg0
 	sudo apt remove -y wireguard
 	sudo rm -rf /etc/wireguard
@@ -160,6 +160,7 @@ EOF
 	wg set wg0 peer $(cat tempubkey) allowed-ips 10.0.0.$newnum/32
 	echo -e "\033[37;41m添加完成，客户端文件：/etc/wireguard/client/$newname.conf\033[0m"
 	rm -f temprikey tempubkey
+	systemctl restart wg-quick@wg0
 }
 
 #开始菜单
@@ -205,9 +206,3 @@ start_menu(){
 }
 
 start_menu
-
-
-
-
-
-
