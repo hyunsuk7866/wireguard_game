@@ -57,9 +57,9 @@ EOF
 
 udp_install(){
 	#下载udpspeeder和udp2raw （amd64版）
-	mkdir /usr/src/udp
+	mkdir /usr/local/udp
 	mkdir /etc/wireguard/client
-	cd /usr/src/udp
+	cd /usr/local/udp
 	wget https://github.com/yushum/wireguard_game/raw/master/speederv2
 	wget https://github.com/yushum/wireguard_game/raw/master/udp2raw
 	wget https://github.com/yushum/wireguard_game/raw/master/run.sh
@@ -115,7 +115,7 @@ cat > /etc/init.d/autoudp<<-EOF
 # Short-Description:	autoudp
 ### END INIT INFO
 
-cd /usr/src/udp
+cd /usr/local/udp
 nohup ./speederv2 -s -l127.0.0.1:4096 -r127.0.0.1:$port -f2:4 --mode 0 --timeout 0 >speeder.log 2>&1 &
 nohup ./run.sh ./udp2raw -s -l0.0.0.0:$udpport -r127.0.0.1:4096  --raw-mode faketcp  -a -k $password >udp2raw.log 2>&1 &
 EOF
@@ -135,7 +135,7 @@ wireguard_remove(){
 	sudo apt remove -y wireguard
 	sudo apt -y autoremove
 	sudo rm -rf /etc/wireguard
-	sudo rm -rf /usr/src/udp
+	sudo rm -rf /usr/local/udp
 	sudo rm -f /etc/init.d/autoudp
 	echo -e "\033[37;41m卸载完成,请重启\033[0m"
 
