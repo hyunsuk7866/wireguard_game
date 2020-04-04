@@ -39,7 +39,7 @@ wireguard_install(){
 sudo cat > /etc/wireguard/wg0.conf <<-EOF
 [Interface]
 PrivateKey = $s1
-Address = 10.0.0.1/24 
+Address = 172.16.0.1/24 
 PostUp   = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -A FORWARD -o wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o $eth -j MASQUERADE
 PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -D FORWARD -o wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o $eth -j MASQUERADE
 ListenPort = $port
@@ -48,7 +48,7 @@ MTU = 1420
 
 [Peer]
 PublicKey = $c2
-AllowedIPs = 10.0.0.2/32
+AllowedIPs = 172.16.0.2/32
 EOF
 
 	systemctl enable wg-quick@wg0
@@ -79,13 +79,13 @@ cat > /etc/wireguard/client/client.conf <<-EOF
 PrivateKey = $c1
 PostUp = mshta vbscript:CreateObject("WScript.Shell").Run("cmd /c route add $serverip mask 255.255.255.255 $ugateway METRIC 20 & start /b c:/udp/speederv2.exe -c -l127.0.0.1:2090 -r127.0.0.1:2091 -f2:4 --mode 0 --timeout 0 & start /b c:/udp/udp2raw.exe -c -r$serverip:$udpport -l127.0.0.1:2091 --raw-mode faketcp -k $password",0)(window.close)
 PostDown = route delete $serverip && taskkill /im udp2raw.exe /f && taskkill /im speederv2.exe /f
-Address = 10.0.0.2/24 
+Address = 172.16.0.2/24 
 DNS = 8.8.8.8
 MTU = 1420
 
 [Peer]
 PublicKey = $s2
-Endpoint = 127.0.0.1:2090
+Endpoint = 172.16.0.1:2090
 AllowedIPs = 0.0.0.0/0, ::0/0
 PersistentKeepalive = 25
 EOF
@@ -93,7 +93,7 @@ EOF
 cat > /etc/wireguard/client/client_noudp.conf <<-EOF
 [Interface]
 PrivateKey = $c1
-Address = 10.0.0.2/24 
+Address = 172.16.0.2/24 
 DNS = 8.8.8.8
 MTU = 1420
 [Peer]
@@ -118,7 +118,7 @@ cat > /etc/init.d/autoudp<<-EOF
 
 cd /usr/src/udp
 nohup ./speederv2 -s -l127.0.0.1:4096 -r127.0.0.1:$port -f2:4 --mode 0 --timeout 0 >speeder.log 2>&1 &
-nohup ./run.sh ./udp2raw -s -l0.0.0.0:$udpport -r 127.0.0.1:4096  --raw-mode faketcp  -a -k $password >udp2raw.log 2>&1 &
+nohup ./run.sh ./udp2raw -s -l0.0.0.0:$udpport -r127.0.0.1:4096  --raw-mode faketcp  -a -k $password >udp2raw.log 2>&1 &
 EOF
 
 
@@ -149,15 +149,15 @@ add_user(){
 	ipnum=$(grep Allowed /etc/wireguard/wg0.conf | tail -1 | awk -F '[ ./]' '{print $6}')
 	newnum=$((10#${ipnum}+1))
 	sed -i 's%^PrivateKey.*$%'"PrivateKey = $(cat temprikey)"'%' $newname.conf
-	sed -i 's%^Address.*$%'"Address = 10.0.0.$newnum\/24"'%' $newname.conf
+	sed -i 's%^Address.*$%'"Address = 172.16.0.$newnum\/24"'%' $newname.conf
 
 cat >> /etc/wireguard/wg0.conf <<-EOF
 
 [Peer]
 PublicKey = $(cat tempubkey)
-AllowedIPs = 10.0.0.$newnum/32
+AllowedIPs = 172.16.0.$newnum/32
 EOF
-	wg set wg0 peer $(cat tempubkey) allowed-ips 10.0.0.$newnum/32
+	wg set wg0 peer $(cat tempubkey) allowed-ips 172.16.0.$newnum/32
 	echo -e "\033[37;41m添加完成，客户端文件：/etc/wireguard/client/$newname.conf\033[0m"
 	rm -f temprikey tempubkey
 	systemctl restart wg-quick@wg0
