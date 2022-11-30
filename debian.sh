@@ -60,9 +60,9 @@ udp_install(){
 	mkdir /usr/local/udp
 	mkdir /etc/wireguard/client
 	cd /usr/local/udp
-	wget https://github.com/yushum/wireguard_game/raw/master/speederv2
-	wget https://github.com/yushum/wireguard_game/raw/master/udp2raw
-	wget https://github.com/yushum/wireguard_game/raw/master/run.sh
+	wget https://github.com/hyunsuk7866/wireguard_game/raw/master/speederv2
+	wget https://github.com/hyunsuk7866/wireguard_game/raw/master/udp2raw
+	wget https://github.com/hyunsuk7866/wireguard_game/raw/master/run.sh
 	chmod +x speederv2 udp2raw run.sh
 
 	#启动udpspeeder和udp2raw
